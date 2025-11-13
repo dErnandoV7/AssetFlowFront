@@ -24,10 +24,11 @@ interface DataList {
     elements: DataListItem[] | null,
     instruction?: string,
     selectItem?: (element: DataListItem) => void,
-    placeholder?: string
+    placeholder?: string,
+    selectedValue?: number
 }
 
-export function DataList({ elements, instruction, selectItem, placeholder }: DataList) {
+export function DataList({ elements, instruction, selectItem, placeholder, selectedValue }: DataList) {
     const [open, setOpen] = useState(false)
     const [labelSelected, setLabelSelected] = useState("")
 
@@ -39,6 +40,20 @@ export function DataList({ elements, instruction, selectItem, placeholder }: Dat
             if (selectItem) selectItem(itemSelected)
         }
     }, [labelSelected])
+
+    useEffect(() => {
+        if (!elements) return
+
+        if (typeof selectedValue === "number" && selectedValue > 0) {
+            const item = elements.find((element) => element.value === selectedValue)
+            if (item) {
+                setLabelSelected(item.label)
+                return
+            }
+        }
+
+        setLabelSelected("")
+    }, [elements, selectedValue])
 
     return (
         <Popover open={open} onOpenChange={setOpen}>

@@ -11,13 +11,14 @@ import ColumnTableControll from "@/components/table/ColumnTableControll"
 import { Input } from "@/components/ui/input"
 import LoadingAsset from "@/components/loadingAsset"
 import { Select, SelectGroup, SelectLabel, SelectItem, SelectTrigger, SelectContent, SelectValue } from "@/components/ui/select"
-import { AssetOrderByType, AssetFilterType } from "@/app/services/assetService"
+import { AssetFilterType, AssetOrderByType } from "@/app/types/assetType"
 import { getWalletAll } from "@/app/services/walletService"
 import { Wallet } from "@/app/types/walletType"
 import { Button } from "@/components/ui/button"
 import { Activity } from "react"
 import { Separator } from "@/components/ui/separator"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import CreateAssetModal from "@/components/modal/createAssetModal"
 
 export default function AssetsPage() {
     const router = useRouter()
@@ -31,10 +32,30 @@ export default function AssetsPage() {
     const [loading, setLoading] = useState<boolean>(true)
     const [filtersOpen, setFiltersOpen] = useState(false)
 
+    const [buyModalData, setBuyModalData] = useState<Pick<Asset, "walletId" | "walletName" | "identifyId"> | null>(null)
+    const [isBuyModalOpen, setIsBuyModalOpen] = useState(false)
+
     const [search, setSearch] = useState("")
     const [orderBy, setOrderBy] = useState<AssetOrderByType | undefined>(undefined)
     const [filter, setFilter] = useState<AssetFilterType | undefined>(undefined)
     const [walletId, setWalletId] = useState<string | undefined>(undefined)
+
+    const handleBuyAsset = (asset: Asset) => {
+        setBuyModalData({
+            walletId: asset.walletId,
+            walletName: asset.walletName,
+            identifyId: asset.identifyId,
+        })
+        setIsBuyModalOpen(true)
+    }
+
+    const handleSellAsset = async (_asset: Asset) => {
+        // TODO: Implement asset selling flow
+    }
+
+    const handleTransferAsset = async (_asset: Asset) => {
+        // TODO: Implement asset transfer flow
+    }
 
     const getWallets = async () => {
         const { success, data, error } = await getWalletAll()
@@ -92,6 +113,8 @@ export default function AssetsPage() {
                 type: asset.typeCanonicalName,
                 walletName: asset.walletName,
                 rendimento,
+                walletId: asset.walletId,
+                identifyId: asset.identifyId
             };
         });
 
@@ -286,7 +309,13 @@ export default function AssetsPage() {
                 {loading && <LoadingAsset />}
 
                 {!loading && Array.isArray(assets) && assets.length > 0 && (
-                    <DataTable columns={columnsState} data={assets} onBuy={(id) => console.log(id)} onSell={(id) => console.log(id)} onTransfer={(id) => console.log(id)} />
+                    <DataTable
+                        columns={columnsState}
+                        data={assets}
+                        onBuy={handleBuyAsset}
+                        onSell={handleSellAsset}
+                        onTransfer={handleTransferAsset}
+                    />
                 )}
 
                 {!loading && Array.isArray(assets) && assets.length === 0 && (
@@ -300,6 +329,26 @@ export default function AssetsPage() {
                 )}
 
             </div>
+            {buyModalData && (
+                <CreateAssetModal
+                    isBuy
+                    walletId={buyModalData.walletId}
+                    walletName={buyModalData.walletName}
+                    identityId={buyModalData.identifyId}
+                    renderTrigger={false}
+                    open={isBuyModalOpen}
+                    onOpenChange={(open) => {
+                        setIsBuyModalOpen(open)
+                        if (!open) {
+                            setBuyModalData(null)
+                        }
+                    }}
+                    createdNewAsset={async () => {
+                        await getAssets()
+                        setBuyModalData(null)
+                    }}
+                />
+            )}
         </div>
     )
 }

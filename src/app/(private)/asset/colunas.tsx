@@ -8,6 +8,8 @@ export type Asset = {
     quantity: number,
     purchasePrice: string,
     rendimento: number,
+    walletId: number,
+    identifyId: number,
 }
 
 export type ColumnType = { accessorKey: string, header: string, show: boolean, jsx?: any }

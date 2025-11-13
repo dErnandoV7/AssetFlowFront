@@ -2,10 +2,7 @@ import { apiBack } from "../../api/axios"
 import { getTokenInCookie } from "../utils/cookiesUtil"
 import { createAssetType } from "../schemas/assetSchema"
 import { ApiResponse } from "../types/apiResponse"
-import { Asset } from "../types/assetType"
-
-export type AssetOrderByType = "quantity" | "purchasePrice"
-export type AssetFilterType = "investment" | "savings" | "checking"
+import { Asset, BuyAssetType, AssetFilterType, AssetIdentity, AssetOrderByType } from "../types/assetType"
 
 interface getAssetsAllProps {
     search?: string,
@@ -19,7 +16,7 @@ export const getAssetsAll = async ({ orderBy, search, direction, filter, walletI
     const token = getTokenInCookie()
 
     try {
-        
+
         const res = await apiBack.get(`assets`, {
             params: {
                 search,
@@ -39,7 +36,9 @@ export const getAssetsAll = async ({ orderBy, search, direction, filter, walletI
                 quantity: asset.quantity,
                 type: asset.identify.symbol,
                 walletName: asset.wallet.name,
-                typeCanonicalName: asset.identify.canonicalName
+                typeCanonicalName: asset.identify.canonicalName,
+                walletId: asset.walletId,
+                identifyId: asset.identifyId
             }
         })
 

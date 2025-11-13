@@ -1,11 +1,11 @@
 import { CircleDollarSign, Wallet } from "lucide-react"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
 import { Button } from "../ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createAssetSchema } from "@/app/schemas/assetSchema"
 import Alerts from "../sweetAlerts/alerts"
-import { useEffect, useState } from "react"
+import { useEffect, useState, ReactNode } from "react"
 import { createAsset } from "@/app/services/assetService"
 import { useAppContext } from "@/app/context/dataContext"
 import { DataList } from "../inputs/dataList"
@@ -15,6 +15,12 @@ interface CreateAssetModal {
     createdNewAsset?: () => void,
     walletId: number,
     walletName: string,
+    isBuy: boolean
+    identityId?: number,
+    open?: boolean,
+    onOpenChange?: (open: boolean) => void,
+    renderTrigger?: boolean,
+    children?: ReactNode
 }
 
 type IdentityItemType = {
@@ -22,14 +28,34 @@ type IdentityItemType = {
     label: string
 }
 
-const CreateAssetModal = ({ createdNewAsset, walletId, walletName }: CreateAssetModal) => {
+const CreateAssetModal = ({
+    createdNewAsset,
+    walletId,
+    walletName,
+    isBuy,
+    identityId: InitialIdentityId,
+    open,
+    onOpenChange,
+    renderTrigger = true,
+    children,
+}: CreateAssetModal) => {
     const { state, dispatch } = useAppContext()
 
-    const [showDialog, setShowDialog] = useState<boolean>(false)
+    const [internalOpen, setInternalOpen] = useState<boolean>(false)
     const [identitys, setIdentitys] = useState<IdentityItemType[] | null>(null)
     const [price, setPrice] = useState<number>(0)
     const [quantity, setQuantity] = useState<number>(0)
     const [identifyId, setIdentifyId] = useState<number>(0)
+
+    const isControlled = typeof open === "boolean"
+    const dialogOpen = isControlled ? open : internalOpen
+
+    const setDialogOpen = (value: boolean) => {
+        if (!isControlled) {
+            setInternalOpen(value)
+        }
+        onOpenChange?.(value)
+    }
 
     const handlePriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
@@ -54,7 +80,14 @@ const CreateAssetModal = ({ createdNewAsset, walletId, walletName }: CreateAsset
         }
     }, [state.assetsIdentity])
 
+    useEffect(() => {
+        if (InitialIdentityId) {
+            setIdentifyId(InitialIdentityId)
+        }
+    }, [InitialIdentityId])
 
+
+    // Função também usada para a Compra de ativos ja existentes
     const handleCreateAssetButton = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
@@ -81,7 +114,7 @@ const CreateAssetModal = ({ createdNewAsset, walletId, walletName }: CreateAsset
             return
         }
 
-        setShowDialog(false)
+        setDialogOpen(false)
         Alerts.success({ title: "Sucesso", text: "Ativo criado com sucesso", timer: 2000 })
 
         if (createdNewAsset) createdNewAsset()
@@ -89,17 +122,26 @@ const CreateAssetModal = ({ createdNewAsset, walletId, walletName }: CreateAsset
 
     return (
         <>
-            <Dialog open={showDialog} onOpenChange={setShowDialog}>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 
-                <Button variant={"secondary"} className="flex justify-center items-center p-2 py-1 text-xs cursor-pointer" onClick={() => setShowDialog(!showDialog)} >
-                    <CircleDollarSign />
-                    <span>Comprar ativos</span>
-                </Button>
-
+                {renderTrigger && (
+                    <DialogTrigger asChild>
+                        {children ?? (
+                            <Button variant={"secondary"} type="button">
+                                {!isBuy ? (
+                                    <CircleDollarSign />
+                                ) : (
+                                    <Wallet />
+                                )}
+                                Comprar ativos
+                            </Button>
+                        )}
+                    </DialogTrigger>
+                )}
 
                 <DialogContent>
                     <Badge variant={"outline"} className="text-sm text-foreground px-2 py-1">
-                        <Wallet className="!w-4 !h-4" />
+                        <Wallet className="w-4! h-4!" />
                         <span>{walletName}</span>
                     </Badge>
                     <form onSubmit={handleCreateAssetButton}>
@@ -112,12 +154,28 @@ const CreateAssetModal = ({ createdNewAsset, walletId, walletName }: CreateAsset
                         <div className="grid gap-4 mb-6">
                             <div className="grid gap-3">
                                 <Label htmlFor="identity">Ativo</Label>
-                                <DataList
-                                    elements={identitys}
-                                    key={"identity"}
-                                    instruction="Selecione um ativo"
-                                    selectItem={(value) => setIdentifyId(value.value)} placeholder="Busque por ativos..."
-                                />
+                                {isBuy && identifyId > 0 ? (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-[200px] justify-start gap-2 text-left opacity-60 cursor-not-allowed"
+                                        disabled
+                                    >
+                                        <CircleDollarSign className="h-4 w-4" />
+                                        <p className="capitalize">
+                                            {identitys?.find((item) => item.value === identifyId)?.label ?? "Ativo selecionado"}
+                                        </p>
+                                    </Button>
+                                ) : (
+                                    <DataList
+                                        elements={identitys}
+                                        key={"identity"}
+                                        instruction="Selecione um ativo"
+                                        selectItem={(value) => setIdentifyId(value.value)}
+                                        placeholder="Busque por ativos..."
+                                        selectedValue={identifyId > 0 ? identifyId : undefined}
+                                    />
+                                )}
                             </div>
                             <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
                                 <div className="space-y-3">

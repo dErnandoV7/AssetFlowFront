@@ -4,8 +4,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { ColumnType } from "@/app/(private)/asset/colunas"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu"
 import { Button } from "../ui/button"
-import { Waypoints, DollarSign, Wallet, ArrowRightLeft, LineChart, BarChart, LucideDollarSign, Settings2 } from "lucide-react"
-
+import { DollarSign, Wallet, ArrowRightLeft, Settings2 } from "lucide-react"
 
 interface DataTable {
   data: any[],
@@ -46,15 +45,18 @@ export function DataTable({ columns, data, onBuy, onSell, onTransfer }: DataTabl
                       <TableCell key={`${column.accessorKey}-${idx_}`}>
                         <DropdownMenu dir="rtl">
                           <DropdownMenuTrigger asChild>
-                            <Button  className="cursor-pointer bg-card/40 hover:bg-secondary" type="button">
+                            <Button className="cursor-pointer bg-card/40 hover:bg-secondary" type="button">
                               <Settings2 className="h-5! w-5!" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             {onBuy && (
-                              <DropdownMenuItem className="text-xs cursor-pointer flex justify-between items-center" onClick={() => onBuy(content)}>
-                                <Wallet />
-                                Comprar ativo
+                              <DropdownMenuItem
+                                className="text-xs cursor-pointer flex items-center gap-2"
+                                onSelect={() => onBuy(content)}
+                              >
+                                <Wallet className="h-4 w-4" />
+                                Comprar ativos
                               </DropdownMenuItem>
                             )}
                             {onSell && (

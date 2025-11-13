@@ -1,5 +1,5 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card"
-import { Wallet, Logs } from "lucide-react"
+import { Wallet, Logs, CircleDollarSign } from "lucide-react"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
 import { useRouter } from "next/navigation"
@@ -46,7 +46,16 @@ const WalletCard = ({ countAssets, createdAt, name, type, walletId }: WalletCard
                         <span>Ver ativos</span>
                     </Button>
 
-                    <CreateAssetModal walletId={walletId} walletName={name} />
+                    <CreateAssetModal isBuy={false} walletId={walletId} walletName={name}>
+                        <Button
+                            type="button"
+                            variant={"secondary"}
+                            className="flex justify-center items-center gap-1 p-2 py-1 text-xs cursor-pointer"
+                        >
+                            <CircleDollarSign className="h-4 w-4" />
+                            <span>Comprar ativos</span>
+                        </Button>
+                    </CreateAssetModal>
                 </CardFooter>
             </Card>
         </>

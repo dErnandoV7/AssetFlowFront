@@ -45,7 +45,7 @@ export default function WalletPage() {
         }
 
         if (!data) return
-        console.log(data)
+        
         dispatch({ type: "SET_ASSETS_IDENTITY", payload: data })
 
         setIdentitys(data)
